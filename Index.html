@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRU Digital Market & Split</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="authPage" class="auth-wrapper">
+        <div class="auth-card">
+            <h2 id="authTitle">เข้าสู่ระบบ CRU Market</h2>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="อีเมลนักศึกษา (@chandra.ac.th)">
+                <input type="password" id="password" placeholder="รหัสผ่าน">
+            </div>
+            <button onclick="handleAuth()" id="authBtn" class="btn-primary">ตกลง</button>
+            <p onclick="toggleAuthMode()" id="toggleText" class="clickable">ยังไม่มีบัญชี? สมัครสมาชิกที่นี่</p>
+        </div>
+    </div>
+
+    <div id="mainApp" class="app-wrapper" style="display: none;">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">🌙 CRU <span>Market</span></div>
+                <div class="nav-right">
+                    <button class="btn-add" onclick="showModal('postModal')">+ ลงประกาศ / ตั้งตี้หาร</button>
+                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="category-list">
+                <button class="cat-btn active" onclick="filterCat('all')">ทั้งหมด</button>
+                <button class="cat-btn" onclick="filterCat('วิทยาศาสตร์')">คณะวิทย์</button>
+                <button class="cat-btn" onclick="filterCat('วิทยาการจัดการ')">คณะจัดการ</button>
+                <button class="cat-btn" onclick="filterCat('มนุษยศาสตร์')">คณะมนุษย์ฯ</button>
+                <button class="cat-btn" onclick="filterCat('ศึกษาศาสตร์')">คณะครู</button>
+            </div>
+
+            <div id="productGrid" class="market-grid">
+                </div>
+        </div>
+    </div>
+
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <h3>📢 ลงประกาศใหม่</h3>
+            <input type="text" id="pTitle" placeholder="ชื่อสินค้า/บริการ">
+            <div class="split-box">
+                <input type="number" id="pPrice" placeholder="ราคารวม (บาท)" oninput="updateSplit()">
+                <input type="number" id="pCount" placeholder="จำนวนคนหาร (1=ขายขาด)" value="1" oninput="updateSplit()">
+            </div>
+            <p id="splitDisplay" class="split-info">ราคาต่อคน: ฿0</p>
+            
+            <select id="pCat">
+                <option value="ทั่วไป">เลือกคณะ/สาขา</option>
+                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                <option value="วิทยาการจัดการ">วิทยาการจัดการ</option>
+                <option value="มนุษยศาสตร์">มนุษยศาสตร์</option>
+                <option value="ศึกษาศาสตร์">ศึกษาศาสตร์</option>
+            </select>
+            <textarea id="pDesc" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+            
+            <div class="modal-footer">
+                <button onclick="hideModal('postModal')" class="btn-secondary">ยกเลิก</button>
+                <button onclick="savePost()" class="btn-primary">โพสต์ประกาศ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatBox" class="chat-container" style="display: none;">
+        <div class="chat-header">
+            <span id="chatTitle">ห้องแชท</span>
+            <button onclick="closeChat()">×</button>
+        </div>
+        <div id="chatMsgs" class="chat-msgs"></div>
+        <div class="chat-input">
+            <input type="text" id="msgInput" placeholder="ถามผู้ขาย...">
+            <button onclick="sendMsg()">ส่ง</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
