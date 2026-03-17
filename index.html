@@ -3,83 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRU Digital Market & Split</title>
+    <title>CRU Digital Market | ระบบซื้อขายนักศึกษา</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div id="authPage" class="auth-wrapper">
+    <div id="authView" class="view">
         <div class="auth-card">
-            <h2 id="authTitle">เข้าสู่ระบบ CRU Market</h2>
-            <div class="input-group">
-                <input type="email" id="email" placeholder="อีเมลนักศึกษา (@chandra.ac.th)">
-                <input type="password" id="password" placeholder="รหัสผ่าน">
+            <div class="auth-header">
+                <h2>🌙 CRU Market</h2>
+                <p id="authSubtitle">เข้าสู่ระบบเพื่อเริ่มใช้งาน</p>
             </div>
-            <button onclick="handleAuth()" id="authBtn" class="btn-primary">ตกลง</button>
-            <p onclick="toggleAuthMode()" id="toggleText" class="clickable">ยังไม่มีบัญชี? สมัครสมาชิกที่นี่</p>
+            <div class="auth-body">
+                <input type="email" id="emailInp" placeholder="อีเมลนักศึกษา (@chandra.ac.th)">
+                <input type="password" id="passInp" placeholder="รหัสผ่าน">
+                <button onclick="handleAuth()" id="mainAuthBtn" class="btn-primary">ตกลง</button>
+                <div class="auth-footer">
+                    <span id="toggleText">ยังไม่มีบัญชี?</span> 
+                    <a href="javascript:void(0)" onclick="toggleAuthMode()" id="toggleBtn">สมัครสมาชิก</a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="mainApp" class="app-wrapper" style="display: none;">
+    <div id="appView" class="view" style="display: none;">
         <nav class="navbar">
             <div class="nav-container">
-                <div class="logo">🌙 CRU <span>Market</span></div>
-                <div class="nav-right">
-                    <button class="btn-add" onclick="showModal('postModal')">+ ลงประกาศ / ตั้งตี้หาร</button>
-                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                <div class="logo">CRU <span>Market</span></div>
+                <div class="nav-tools">
+                    <button class="btn-accent" onclick="openModal('postModal')">+ ลงประกาศ/ตั้งตี้</button>
+                    <button class="btn-text" onclick="logout()">ออกจากระบบ</button>
                 </div>
             </div>
         </nav>
 
-        <div class="container">
-            <div class="category-list">
-                <button class="cat-btn active" onclick="filterCat('all')">ทั้งหมด</button>
-                <button class="cat-btn" onclick="filterCat('วิทยาศาสตร์')">คณะวิทย์</button>
-                <button class="cat-btn" onclick="filterCat('วิทยาการจัดการ')">คณะจัดการ</button>
-                <button class="cat-btn" onclick="filterCat('มนุษยศาสตร์')">คณะมนุษย์ฯ</button>
-                <button class="cat-btn" onclick="filterCat('ศึกษาศาสตร์')">คณะครู</button>
-            </div>
+        <div class="content-container">
+            <aside class="sidebar">
+                <h3>คณะ / หมวดหมู่</h3>
+                <ul id="categoryList">
+                    <li class="active" onclick="filterCat('ทั้งหมด')">ทั้งหมด</li>
+                    <li onclick="filterCat('วิทยาศาสตร์')">วิทยาศาสตร์</li>
+                    <li onclick="filterCat('วิทยาการจัดการ')">วิทยาการจัดการ</li>
+                    <li onclick="filterCat('มนุษยศาสตร์')">มนุษยศาสตร์</li>
+                    <li onclick="filterCat('ศึกษาศาสตร์')">ศึกษาศาสตร์</li>
+                    <li onclick="filterCat('นิติศาสตร์')">นิติศาสตร์</li>
+                </ul>
+            </aside>
 
-            <div id="productGrid" class="market-grid">
-                </div>
+            <main class="main-feed">
+                <div id="productGrid" class="grid">
+                    </div>
+            </main>
         </div>
     </div>
 
     <div id="postModal" class="modal">
         <div class="modal-content">
-            <h3>📢 ลงประกาศใหม่</h3>
-            <input type="text" id="pTitle" placeholder="ชื่อสินค้า/บริการ">
-            <div class="split-box">
-                <input type="number" id="pPrice" placeholder="ราคารวม (บาท)" oninput="updateSplit()">
-                <input type="number" id="pCount" placeholder="จำนวนคนหาร (1=ขายขาด)" value="1" oninput="updateSplit()">
+            <h3>📢 สร้างประกาศใหม่</h3>
+            <div class="input-group">
+                <input type="text" id="pTitle" placeholder="ชื่อสินค้าหรือรายการหาร">
+                <select id="pCat">
+                    <option value="ทั่วไป">เลือกหมวดหมู่</option>
+                    <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                    <option value="วิทยาการจัดการ">วิทยาการจัดการ</option>
+                    <option value="มนุษยศาสตร์">มนุษยศาสตร์</option>
+                    <option value="ศึกษาศาสตร์">ศึกษาศาสตร์</option>
+                </select>
             </div>
-            <p id="splitDisplay" class="split-info">ราคาต่อคน: ฿0</p>
-            
-            <select id="pCat">
-                <option value="ทั่วไป">เลือกคณะ/สาขา</option>
-                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
-                <option value="วิทยาการจัดการ">วิทยาการจัดการ</option>
-                <option value="มนุษยศาสตร์">มนุษยศาสตร์</option>
-                <option value="ศึกษาศาสตร์">ศึกษาศาสตร์</option>
-            </select>
+            <div class="split-calculator">
+                <label>ระบบคำนวณราคาหาร (ถ้ามี)</label>
+                <div class="row">
+                    <input type="number" id="pTotal" placeholder="ราคารวม" oninput="doSplit()">
+                    <input type="number" id="pPeople" placeholder="จำนวนคนหาร" value="1" oninput="doSplit()">
+                </div>
+                <p id="splitResult">ราคาต่อคน: ฿0.00</p>
+            </div>
             <textarea id="pDesc" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
-            
-            <div class="modal-footer">
-                <button onclick="hideModal('postModal')" class="btn-secondary">ยกเลิก</button>
-                <button onclick="savePost()" class="btn-primary">โพสต์ประกาศ</button>
+            <div class="modal-btns">
+                <button onclick="closeModal('postModal')" class="btn-text">ยกเลิก</button>
+                <button onclick="savePost()" class="btn-primary">ยืนยันโพสต์</button>
             </div>
         </div>
     </div>
 
-    <div id="chatBox" class="chat-container" style="display: none;">
+    <div id="chatBox" class="chat-window" style="display: none;">
         <div class="chat-header">
-            <span id="chatTitle">ห้องแชท</span>
+            <span id="chatTargetName">แชท</span>
             <button onclick="closeChat()">×</button>
         </div>
-        <div id="chatMsgs" class="chat-msgs"></div>
-        <div class="chat-input">
-            <input type="text" id="msgInput" placeholder="ถามผู้ขาย...">
+        <div id="chatMessages" class="chat-body"></div>
+        <div class="chat-footer">
+            <input type="text" id="msgInput" placeholder="พิมพ์ข้อความ...">
             <button onclick="sendMsg()">ส่ง</button>
         </div>
     </div>
