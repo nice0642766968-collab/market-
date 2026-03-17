@@ -8,6 +8,7 @@ const firebaseConfig = {
     measurementId: "G-Q985QSMDDT"
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -15,95 +16,103 @@ const db = firebase.firestore();
 let isLoginMode = true;
 let currentChatId = null;
 
-// --- 1. ระบบ Authentication ---
+// --- Authentication Logic ---
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
-    document.getElementById('authTitle').innerText = isLoginMode ? "เข้าสู่ระบบ CRU Market" : "สมัครสมาชิกใหม่";
-    document.getElementById('toggleText').innerText = isLoginMode ? "ยังไม่มีบัญชี? สมัครที่นี่" : "มีบัญชีอยู่แล้ว? ล็อกอิน";
+    document.getElementById('authSubtitle').innerText = isLoginMode ? "เข้าสู่ระบบเพื่อเริ่มใช้งาน" : "สร้างบัญชีใหม่สำหรับนักศึกษา";
+    document.getElementById('toggleBtn').innerText = isLoginMode ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
+    document.getElementById('toggleText').innerText = isLoginMode ? "ยังไม่มีบัญชี?" : "มีบัญชีอยู่แล้ว?";
 }
 
 async function handleAuth() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
+    const email = document.getElementById('emailInp').value;
+    const pass = document.getElementById('passInp').value;
     try {
         if (isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
         else await auth.createUserWithEmailAndPassword(email, pass);
-    } catch (err) { alert(err.message); }
+    } catch (e) { alert("เกิดข้อผิดพลาด: " + e.message); }
 }
 
 auth.onAuthStateChanged(user => {
-    document.getElementById('authPage').style.display = user ? 'none' : 'flex';
-    document.getElementById('mainApp').style.display = user ? 'block' : 'none';
-    if (user) loadProducts();
+    if (user) {
+        document.getElementById('authView').style.display = 'none';
+        document.getElementById('appView').style.display = 'block';
+        loadPosts();
+    } else {
+        document.getElementById('authView').style.display = 'flex';
+        document.getElementById('appView').style.display = 'none';
+    }
 });
 
 function logout() { auth.signOut(); }
 
-// --- 2. ระบบ Marketplace & Split Bill ---
-function updateSplit() {
-    const price = document.getElementById('pPrice').value || 0;
-    const count = document.getElementById('pCount').value || 1;
-    document.getElementById('splitDisplay').innerText = `ราคาต่อคน: ฿${(price / count).toFixed(2)}`;
+// --- Marketplace Logic ---
+function doSplit() {
+    const total = document.getElementById('pTotal').value || 0;
+    const people = document.getElementById('pPeople').value || 1;
+    document.getElementById('splitResult').innerText = `ราคาต่อคน: ฿${(total / people).toFixed(2)}`;
 }
 
 async function savePost() {
-    const post = {
+    const postData = {
         title: document.getElementById('pTitle').value,
-        price: Number(document.getElementById('pPrice').value),
-        count: Number(document.getElementById('pCount').value),
-        cat: document.getElementById('pCat').value,
-        desc: document.getElementById('pDesc').value,
-        user: auth.currentUser.email,
-        time: firebase.firestore.FieldValue.serverTimestamp()
+        category: document.getElementById('pCat').value,
+        totalPrice: Number(document.getElementById('pTotal').value),
+        splitCount: Number(document.getElementById('pPeople').value),
+        description: document.getElementById('pDesc').value,
+        owner: auth.currentUser.email,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
-    await db.collection("posts").add(post);
-    hideModal('postModal');
+    await db.collection("market_posts").add(postData);
+    closeModal('postModal');
 }
 
-function loadProducts() {
-    db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+function loadPosts() {
+    db.collection("market_posts").orderBy("timestamp", "desc").onSnapshot(snap => {
         const grid = document.getElementById('productGrid');
         grid.innerHTML = '';
         snap.forEach(doc => {
             const p = doc.data();
+            const pricePerPerson = (p.totalPrice / p.splitCount).toFixed(2);
             grid.innerHTML += `
                 <div class="card">
-                    <small>${p.cat}</small>
+                    <small>${p.category}</small>
                     <h3>${p.title}</h3>
-                    <p>${p.desc}</p>
-                    <div class="price-tag">฿${(p.price / p.count).toFixed(2)} ${p.count > 1 ? '<small>/คน</small>' : ''}</div>
-                    <button class="btn-primary" onclick="openChat('${doc.id}', '${p.title}')">คุยกับผู้ขาย</button>
+                    <p class="price-tag">฿${pricePerPerson} ${p.splitCount > 1 ? '<span style="font-size:12px;">/คน</span>' : ''}</p>
+                    <button class="btn-primary" onclick="openChat('${doc.id}', '${p.title}')">💬 แชทสอบถาม</button>
                 </div>
             `;
         });
     });
 }
 
-// --- 3. ระบบแชท ---
+// --- Chat Logic ---
 function openChat(id, title) {
     currentChatId = id;
     document.getElementById('chatBox').style.display = 'flex';
-    document.getElementById('chatTitle').innerText = title;
-    db.collection("posts").doc(id).collection("messages").orderBy("time")
+    document.getElementById('chatTargetName').innerText = title;
+    db.collection("market_posts").doc(id).collection("messages").orderBy("time")
     .onSnapshot(snap => {
-        const box = document.getElementById('chatMsgs');
+        const box = document.getElementById('chatMessages');
         box.innerHTML = '';
         snap.forEach(m => {
-            box.innerHTML += `<div><b>${m.data().user.split('@')[0]}:</b> ${m.data().text}</div>`;
+            const data = m.data();
+            box.innerHTML += `<div><b>${data.user.split('@')[0]}:</b> ${data.text}</div>`;
         });
+        box.scrollTop = box.scrollHeight;
     });
 }
 
 async function sendMsg() {
     const text = document.getElementById('msgInput').value;
     if (!text) return;
-    await db.collection("posts").doc(currentChatId).collection("messages").add({
+    await db.collection("market_posts").doc(currentChatId).collection("messages").add({
         text, user: auth.currentUser.email, time: firebase.firestore.FieldValue.serverTimestamp()
     });
     document.getElementById('msgInput').value = '';
 }
 
-// Helper Functions
-function showModal(id) { document.getElementById(id).style.display = 'flex'; }
-function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+// --- Helpers ---
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function closeChat() { document.getElementById('chatBox').style.display = 'none'; }
